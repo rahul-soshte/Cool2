@@ -1,6 +1,7 @@
 package com.xl.hunter.planmap;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -10,30 +11,43 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
-
+ArrayList<CenterPlaces> object;
     private GoogleMap mMap;
     //   Vector locations=new Vector();
+    ArrayList<Marker> markers=new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        Intent intent = getIntent();
+        Bundle args = intent.getBundleExtra("BUNDLE");
+        object = (ArrayList<CenterPlaces>) args.getSerializable("ARRAYLIST");
+
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
     }
     /*
 
@@ -75,7 +89,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
+        PlotUserPoints();
+/*
         // Add a marker in Sydney and move the camera
         LatLng Chembur = new LatLng(19.062053, 72.883436);
         LatLng Mulund = new LatLng(19.172554, 72.942554);
@@ -100,7 +115,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        mMap.setMyLocationEnabled(true);
+        */
+//        mMap.setMyLocationEnabled(true);
 
 //Vector locations=new Vector();
 // getcenter
@@ -117,5 +133,56 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Vector to store the LatLng object
         //Vector locations=new Vector(LatLng);
         //locations.addElement(LatLng);
+    }
+    public void PlotUserPoints()
+    {
+        if(!object.isEmpty() && object !=null )
+        {
+            for(int i=0;i<object.size();i++)
+            {
+              //  user_coordinates.get(i).getGpsLat();
+                LatLng latLng = new LatLng(object.get(i).getLatitude(),object.get(i).getLongitude());
+
+                Marker marker=mMap.addMarker(new MarkerOptions().position(latLng).title(object.get(i).getName()).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
+                markers.add(marker);
+
+                // mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+
+            }
+
+        }
+
+        if(markers.size()==1)
+        {
+
+            CameraPosition cameraPosition=new CameraPosition.Builder().target(markers.get(0).getPosition()).zoom(12).build();
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+  //          String type="Suggestion";
+//            new GetCenterofUsers().execute(type,Double.toString(markers.get(0).getPosition().latitude),Double.toString(markers.get(0).getPosition().longitude));
+        }
+        else {
+            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+
+            for (Marker marker : markers) {
+
+                builder.include(marker.getPosition());
+
+            }
+
+            LatLngBounds bounds = builder.build();
+
+            int padding = 50; // offset from edges of the map in pixels
+
+            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+
+            mMap.animateCamera(cu);
+
+            LatLng latLng;
+
+            latLng = bounds.getCenter();
+
+            mMap.addMarker(new MarkerOptions().position(latLng).title("Center").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+
+        }
     }
 }

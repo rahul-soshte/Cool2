@@ -1,10 +1,14 @@
 package com.xl.hunter.planmap;
 
+import android.os.Parcelable;
+
+import java.io.Serializable;
+
 /**
  * Created by hunter on 6/10/17.
  */
 
-public class CenterPlaces {
+public class CenterPlaces implements Serializable{
     private String name;
     private double longitude;
     private double latitude;
@@ -20,13 +24,14 @@ public class CenterPlaces {
     {
         return name;
     }
-    private double getLongitude()
+
+    public double getLongitude()
     {
         return longitude;
 
     }
 
-    private double getLatitude()
+    public double getLatitude()
     {
         return latitude;
     }
